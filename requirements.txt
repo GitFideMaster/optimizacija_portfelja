@@ -1,0 +1,9 @@
+pandas
+numpy
+dash 
+dash_bootstrap_components
+plotly
+matplotlib
+yfinance 
+pyarrow
+Riskfolio-Lib 

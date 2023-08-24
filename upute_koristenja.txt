@@ -1,0 +1,13 @@
+1. U prazan folder prekopirajte raspakirajte "projekt.zip"
+
+2. Stvori virtualno okruženje pokretanjem naredbe: virtualenv myenv
+
+3. Uđite u virtualno okruženje s naredbom(ovo ja windows): myenv\Scripts\activate
+
+4. Instalirajte sve potrebne knjižnice s naredbom: pip3 install -r requirements.txt
+
+5. Napunite bazu s naredbom: py inicializacija_i_punjenje_baze.py
+
+6. Pokrenite alat s naredbom: py server.py
+
+Alat bi se trebao pokrenut kroz minutu, nalazi se na: http://localhost:8052/
