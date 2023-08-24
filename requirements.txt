@@ -7,3 +7,4 @@ matplotlib
 yfinance 
 pyarrow
 Riskfolio-Lib 
+gunicorn
