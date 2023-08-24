@@ -30,6 +30,7 @@ import plotly.graph_objects as go
 from dohvacanje_zg_burza_podataka import *
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 
 from dash import callback_context
 
