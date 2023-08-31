@@ -478,4 +478,10 @@ def add_all_stocks(n, options):
         raise PreventUpdate
 
 if __name__ == '__main__':
+    print(f'Zadnji datum iz baze: {get_last_date_from_db()[:10]}')
+    fill_database(start_time=get_last_date_from_db()[:10])
+    print(f'Izvlačenje završeno, novi zadnji datum iz baze: {get_last_date_from_db()[:10]}')
+
+    time.sleep(3)
+    print('POKRETANJE SERVERA')
     app.run_server(debug=False, port=8052)
