@@ -9,25 +9,26 @@ from datetime import datetime
 import sqlite3
 
 def try_to_transform_data_to_numeric(column_data):
+    ''' Funkcija pretvara vrstu podataka predanog stupca podataka (stupac je objekt pandas Series-a) iz "string-a" (tekstualni niz) u "float" (decimalni broj) '''
     try:
         return column_data.str.replace('.', '', regex=False).str.replace(',', '.').astype(float)
     except:
         return column_data
     
 def get_market_info():
+    ''' Funkcija vraća informacije o burzi (dostupne vrijednosice i slično) u obliku pandas DataFrame-a '''
     try:
         url_burza = f'https://rest.zse.hr/web/Bvt9fe2peQ7pwpyYqODM/price-list/XZAG/{datetime.now().strftime("%Y-%m-%d")}/csv?language=HR'
         response = requests.get(url_burza)
         data = StringIO(response.text)
         market_info = pd.read_csv(data, delimiter=';')
         market_info = pd.read_parquet('market_info.parquet')
-#         if len(market_info) > 0:
-#             market_info.to_parquet('market_info.parquet')
         return market_info
     except:
         return pd.read_parquet('market_info.parquet')
     
 def get_one_raw_stock_data(stock, market_info=None, start_time='2023-01-01', end_time=datetime.now().strftime("%Y-%m-%d")):
+    ''' Funkcija vraća sirove (neobrađene) podatke odabrane vrijednosnice za zadani vremenski period direktno s web stranice Zagrebačke burze '''
     if market_info is None:
         market_info = get_market_info()
     
@@ -39,6 +40,7 @@ def get_one_raw_stock_data(stock, market_info=None, start_time='2023-01-01', end
     return pd.read_csv(data, delimiter=';')
 
 def get_one_stock_data(stock, market_info=None, start_time='2023-01-01', end_time=datetime.now().strftime("%Y-%m-%d"), columns_to_return='returns'):
+    ''' Funkcija vraća obrađene podatke odabrane vrijednosnice za zadani vremenski period direktno s web stranice Zagrebačke burze '''
     df = get_one_raw_stock_data(stock, market_info=market_info, start_time=start_time, end_time=end_time)
     
     df = df[df['trading_model_id'] == 'CT']
@@ -75,6 +77,7 @@ def get_one_stock_data(stock, market_info=None, start_time='2023-01-01', end_tim
     return df.fillna(method='ffill')
 
 def get_stock_prices(stocks, start_time='2020-01-01', end_time=datetime.now().strftime("%Y-%m-%d")):
+    ''' Funkcija vraća podatke o cijeni odabrane vrijednosnice za zadani vremenski period direktno s web stranice Zagrebačke burze '''
     burza_info = get_market_info()
     
     df_dict = {}
@@ -92,6 +95,7 @@ def get_stock_prices(stocks, start_time='2020-01-01', end_time=datetime.now().st
     return pd.concat(df_dict.values(), axis=1).resample('1D').asfreq().fillna(method='ffill')
 
 def get_stock_prices_and_returns(stocks, start_time='2020-01-01', end_time=datetime.now().strftime("%Y-%m-%d")):
+    ''' Funkcija vraća podatke o cijeni i povratima odabrane vrijednosnice za zadani vremenski period direktno s web stranice Zagrebačke burze '''
     burza_info = get_market_info()
     
     df_price_dict = {}
@@ -118,6 +122,7 @@ def get_stock_prices_and_returns(stocks, start_time='2020-01-01', end_time=datet
 
 
 def get_stock_options():
+    ''' Funkcija vraća listu dostupnih vrijednosnica '''
     burza_info = get_market_info()
 
     stocks = list(burza_info['symbol'].unique())
@@ -126,6 +131,7 @@ def get_stock_options():
     return stocks
 
 def transform_data(df):
+    ''' Funkcija čisti podatke i računa povrata te vraća izračunate povrate kao i neupotrebljive stupce '''
     df = df.copy()
     nan_columns =  list(df.columns[df.isnull().all()])
     df = df.drop(nan_columns, axis=1).copy()
@@ -144,6 +150,7 @@ def transform_data(df):
 ############################################# BAZA #############################################
 
 def fill_database(stocks=get_stock_options(), start_time='2015-01-01', end_time=datetime.now().strftime("%Y-%m-%d"), db_name='baza_podataka.db'):
+    ''' Funkcija puni bazu podataka za zadanu listu vrijednosnica i za zadani vremenski period '''
     print('--- fill_database --- POCETAK')
     print(f'--- fill_database --- dohvacanje podataka od {start_time} do {end_time}')
     prices, returns_data = get_stock_prices_and_returns(stocks, start_time, end_time)
@@ -174,6 +181,7 @@ def fill_database(stocks=get_stock_options(), start_time='2015-01-01', end_time=
     return 'Baza je napunjena'
 
 def read_from_db(stocks=get_stock_options() , start_time='2015-01-01', end_time=None, db_name='baza_podataka.db', read_all=False):
+    ''' Funkcija vraća cijene i povrate odabranih vrijednosnica za zadani vremenski period iz baze podataka '''
     conn = sqlite3.connect(db_name)
     
     if stocks is None:
@@ -205,6 +213,7 @@ def read_from_db(stocks=get_stock_options() , start_time='2015-01-01', end_time=
 
 
 def get_last_date_from_db(db_name='baza_podataka.db'):
+    ''' Funkcija vraća zadnji spremljeni datum u bazi podataka  '''
     try:
         conn = sqlite3.connect(db_name)
     
